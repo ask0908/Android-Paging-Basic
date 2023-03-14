@@ -1,7 +1,7 @@
 package com.example.pagingbasic.di
 
-import com.example.pagingbasic.data.api.SimpleApi
-import com.example.pagingbasic.util.Constants.BASE_URL
+import com.example.pagingbasic.data.PostRepository
+import com.example.pagingbasic.data.api.JsonPlaceHolderApi
 import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
@@ -16,6 +16,10 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object ApiModule {
+
+    @Provides
+    fun provideBaseUrl() = "https://jsonplaceholder.typicode.com/"
+
     @Provides
     @Singleton
     fun provideGson() = GsonBuilder().setLenient().create()!!
@@ -29,12 +33,16 @@ object ApiModule {
         .build()
 
     @Provides
-    @Singleton
-    fun provideSimpleApiClient(client: OkHttpClient): SimpleApi = Retrofit.Builder()
-        .baseUrl(BASE_URL)
+    fun provideJsonPlaceholderApi(client: OkHttpClient): JsonPlaceHolderApi = Retrofit.Builder()
+        .baseUrl(provideBaseUrl())
         .client(provideOkHttpClient())
         .addConverterFactory(GsonConverterFactory.create(provideGson()))
         .client(client)
         .build()
-        .create(SimpleApi::class.java)
+        .create(JsonPlaceHolderApi::class.java)
+
+    @Provides
+    fun providePostRepository(api: JsonPlaceHolderApi): PostRepository {
+        return PostRepository(api)
+    }
 }
